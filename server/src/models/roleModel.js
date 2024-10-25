@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
+const { Schema, model } = mongoose;
 
-const roleSchema = new mongoose.Schema({
-  name: { type: String, enum: ["client", "manager", "super_admin", "delivery"], required: true },
+const roleSchema = new Schema({
+  name: { type: String, enum: ["client", "manager", "super_admin"], required: true },
 });
 
-export default mongoose.model("Role", roleSchema);
+export default model("Role", roleSchema);
