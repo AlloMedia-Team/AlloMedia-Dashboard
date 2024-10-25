@@ -36,6 +36,7 @@ export const validateTheOrder = async (req, res) => {
         const order = await findOrderById(orderId);
         await changeOrderStatus(order, 'in_progress');
         const delivery = await orderToDeliveryStep(orderId, deliveryMan);
+        await sendNotification(order.clientId, 'You order has been accepted', 'order_status')
         await sendNotification(delivery._id, 'New command has asigned to you', 'new_order');
         return res.status(200).json({
             message: 'Order updated',
@@ -56,13 +57,12 @@ export const validateTheOrder = async (req, res) => {
 export const refuseTheOrder = async (req, res) => {
     try{
         const { orderId } = req.body;
-        await deletedOrder(orderId);
+        const clientId = await deletedOrder(orderId);
+        await sendNotification(clientId, 'Your order has refused', 'order_status');
         return res.status(201).json({
             message: "Order refused successfully",
         })
     }catch(err){
-        console.log(err);
-        
         if(err.status){
             return res.status(err.status).json({
                 error: err.message

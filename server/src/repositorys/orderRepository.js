@@ -49,6 +49,7 @@ export const deletedOrder = async (order) => {
             throw error;
         }
         await deletedOrder.deleteOne({ _id: order });
+        return deletedOrder.clientId
     }catch(err){
         if (err.name === 'CastError') {
             const error = new Error('Invalid Order ID format');
