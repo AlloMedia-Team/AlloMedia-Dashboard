@@ -1,7 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import connectDB from "./src/config/dbConfig.js";
-import { authRoutes, orderRouter, deliveryRouter, menuRoutes, restaurantRoutes } from "./src/routes/index.js";
+import { authRoutes, orderRouter, deliveryRouter, menuRoutes, restaurantRoutes, userRouter } from "./src/routes/index.js";
 import cors from "cors";
 import router from "./src/routes/api.js";
 
@@ -45,6 +45,7 @@ app.use("/api/order", orderRouter);
 app.use("/api/delivery", deliveryRouter);
 app.use("/api", router);
 app.use("/api/menus", menuRoutes);
+app.use("/api/users", userRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
