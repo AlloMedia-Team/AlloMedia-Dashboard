@@ -92,6 +92,7 @@ const OrdersComponent: React.FC<OrdersComponentProps> = ({ orders, onAssignDeliv
                                             <button
                                                 className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
                                                 onClick={() => onAssignDelivery(order._id)}
+                                                disabled={order.status !== 'pending' ? true: false}
                                             >
                                                 Assign Delivery
                                             </button>
@@ -100,6 +101,7 @@ const OrdersComponent: React.FC<OrdersComponentProps> = ({ orders, onAssignDeliv
                                             <button
                                                 className="bg-red-500 text-white px-3 py-1 rounded"
                                                 onClick={() => refuseOrder(order._id)}
+                                                disabled={order.status !== 'pending' ? true: false}
                                             >
                                                 Refuse Order
                                             </button>
