@@ -39,7 +39,7 @@ export const validateTheOrder = async (req, res) => {
         await sendNotification(order.clientId, 'You order has been accepted', 'order_status')
         await sendNotification(delivery._id, 'New command has asigned to you', 'new_order');
         return res.status(200).json({
-            message: 'Order updated',
+            message: 'Order validated and the order assigned',
             order: order
         })
     }catch(err){        
