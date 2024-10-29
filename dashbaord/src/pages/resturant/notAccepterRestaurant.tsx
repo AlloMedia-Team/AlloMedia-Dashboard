@@ -18,10 +18,11 @@ export default function PendingRestaurant() {
         fetchingPendinRestaurant()
     }, [PendingRestaurant])
 
-    async function handleAcceptance(id) {
+    async function handleAcceptance(id, userId) {
         try {
-            let result = await axios.get(`http://localhost:3000/api/restaurants/accepted/${id}`);
-            console.log('the result of this issss',result.data.message);
+            let result = await axios.get(`http://localhost:3000/api/restaurants/accepted/${id}/${userId}`);
+            // console.log('the result of this issss',result.data.message);
+            console.log('the user update successfully');
         }catch(e){
             console.log("there's an error", e);
         }
@@ -50,7 +51,7 @@ export default function PendingRestaurant() {
                                 <td>{restaurant.location.city}</td>
                                 <td>{restaurant.owner[0].firstName} {restaurant.owner[0].lastName}</td>
                                 <td className=" text-red-700 font-small rounded-lg text-sm">Not Accepted</td>
-                                <td><button onClick={(e) => handleAcceptance(restaurant._id)} className="btn bg-green-500" > accepter </button></td>
+                                <td><button onClick={(e) => handleAcceptance(restaurant._id, restaurant.owner[0]._id)} className="btn bg-green-500" > accepter </button></td>
                             </tr>
                         ))
 
