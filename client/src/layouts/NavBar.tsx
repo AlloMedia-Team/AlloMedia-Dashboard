@@ -16,6 +16,7 @@ import { LogIn, LogOut, Menu, User, UserPlus } from "lucide-react";
 import { logout } from "@/store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
+import axios from "axios";
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -56,8 +57,8 @@ const NavBar = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/categories");
-      const data = await response.json();
+      const response = await axios.get("http://localhost:3000/api/categories");
+      const data = response.data;
       console.log("API Response:", data);
 
       if (data.categories && Array.isArray(data.categories)) {
@@ -87,13 +88,33 @@ const NavBar = () => {
       city: "",
       address: "",
       categoryIds: [],
-      managerId: user?._id,
+      managerId: user._id,
     },
     validationSchema,
-    onSubmit: (values) => {
-      console.log("Form values:", values);
-      // Show success toast
-      toast.success("Restaurant added successfully!");
+    onSubmit: async (values) => {
+      const payload = {
+        name: values.name,
+        location: {
+          city: values.city,
+          address: values.address,
+        },
+        categoryIds: values.categoryIds,
+        managerId: values.managerId,
+      };
+
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/restaurants/",
+          payload
+        );
+        if (response.status === 201) {
+          toast.success("Restaurant added successfully!");
+          toggleCreateRestaurantModal(); // Close the modal
+        }
+      } catch (error) {
+        console.error("Error adding restaurant:", error);
+        toast.error("Failed to add restaurant. Please try again.");
+      }
     },
   });
 
