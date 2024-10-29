@@ -11,6 +11,12 @@ const RestaurantComponent = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { restaurants, loading, error, pagination } = useSelector((state: RootState) => state.restaurants);
     const { users } = useSelector((state: RootState) => state.users);
+    const [searchParams, setSearchParams] = useState({
+        name: '',
+        managerName: '',
+        city: '',
+        address: '',
+    });
 
     console.log('users: ' + users);
 
@@ -27,6 +33,20 @@ const RestaurantComponent = () => {
         menuId: null,
         managerId: '',
     });
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            dispatch(
+                fetchRestaurants({
+                    page: pagination.currentPage,
+                    limit: pagination.itemsPerPage,
+                    ...searchParams,
+                })
+            );
+        }, 300); // Debounce search
+
+        return () => clearTimeout(timeoutId);
+    }, [dispatch, pagination.currentPage, searchParams]);
 
     useEffect(() => {
         dispatch(
@@ -73,6 +93,14 @@ const RestaurantComponent = () => {
         } catch (error) {
             toast.error(isEditMode ? 'Failed to update restaurant' : 'Failed to create restaurant');
         }
+    };
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setSearchParams((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleEdit = (restaurant: Restaurant) => {
@@ -123,7 +151,7 @@ const RestaurantComponent = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    // if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
     return (
@@ -131,53 +159,69 @@ const RestaurantComponent = () => {
             <div className="px-4 mx-auto max-w-screen-2xl lg:px-12">
                 <div className="relative overflow-hidden bg-white shadow-md dark:bg-gray-800 sm:rounded-lg">
                     {/* Header */}
-                    <div className="flex justify-between items-center p-4">
-                        <h2 className="text-xl font-semibold">Restaurants</h2>
-                        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-blue-500 text-white rounded-lg">
-                            Add Restaurant
-                        </button>
+                    <h2 className="text-2xl font-semibold p-4 pb-0">Restaurants</h2>
+                    <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                            <input type="text" name="name" value={searchParams.name} onChange={handleSearch} className="w-full border rounded p-2" placeholder="Search by name..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Manager</label>
+                            <input type="text" name="managerName" value={searchParams.managerName} onChange={handleSearch} className="w-full border rounded p-2" placeholder="Search by manager..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <input type="text" name="city" value={searchParams.city} onChange={handleSearch} className="w-full border rounded p-2" placeholder="Search by city..." />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input type="text" name="address" value={searchParams.address} onChange={handleSearch} className="w-full border rounded p-2" placeholder="Search by address..." />
+                        </div>
                     </div>
-
-                    {/* Table */}
-                    <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3">Name</th>
-                                <th className="px-6 py-3">Manager</th>
-                                <th className="px-6 py-3">City</th>
-                                <th className="px-6 py-3">Address</th>
-                                <th className="px-6 py-3">Created At</th>
-                                <th className="px-6 py-3">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {restaurants.map((restaurant) => (
-                                <tr key={restaurant._id} className="border-b">
-                                    <td className="px-6 py-4">{restaurant.name}</td>
-                                    <td className="px-6 py-4">
-                                        {restaurant.managerId.firstName} {restaurant.managerId.lastName}
-                                    </td>
-                                    <td className="px-6 py-4">{restaurant.location.city}</td>
-                                    <td className="px-6 py-4">{restaurant.location.address}</td>
-                                    <td className="px-6 py-4">{new Date(restaurant.createdAt!).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4">
-                                        <button
-                                            onClick={() => handleEdit(restaurant)}
-                                            className="text-blue-500 hover:text-white mr-2 bg-blue-100 px-3 py-1 rounded border border-blue-400 hover:bg-blue-400 transition"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(restaurant._id!)}
-                                            className="text-red-500 hover:text-white bg-red-100 px-3 py-1 rounded border border-red-400 hover:bg-red-400 transition"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
+                    {loading ? (
+                        <div className="text-center py-8 text-xl">Loading...</div>
+                    ) : (
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3">Name</th>
+                                    <th className="px-6 py-3">Manager</th>
+                                    <th className="px-6 py-3">City</th>
+                                    <th className="px-6 py-3">Address</th>
+                                    <th className="px-6 py-3">Created At</th>
+                                    <th className="px-6 py-3">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {restaurants.map((restaurant) => (
+                                    <tr key={restaurant._id} className="border-b">
+                                        <td className="px-6 py-4">{restaurant.name}</td>
+                                        <td className="px-6 py-4">
+                                            {restaurant.managerId.firstName} {restaurant.managerId.lastName}
+                                        </td>
+                                        <td className="px-6 py-4">{restaurant.location.city}</td>
+                                        <td className="px-6 py-4">{restaurant.location.address}</td>
+                                        <td className="px-6 py-4">{new Date(restaurant.createdAt!).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4">
+                                            <button
+                                                onClick={() => handleEdit(restaurant)}
+                                                className="text-blue-500 hover:text-white mr-2 bg-blue-100 px-3 py-1 rounded border border-blue-400 hover:bg-blue-400 transition"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(restaurant._id!)}
+                                                className="text-red-500 hover:text-white bg-red-100 px-3 py-1 rounded border border-red-400 hover:bg-red-400 transition"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                    {/* Table */}
 
                     {/* Pagination */}
                     <div className="flex justify-between items-center p-4">
