@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NavLink, useLocation } from 'react-router-dom';
 import { toggleSidebar } from '../../store/themeConfigSlice';
 import AnimateHeight from 'react-animate-height';
-import { IRootState } from '../../store';
+// import { IRootState } from '../../store';
 import { useState, useEffect } from 'react';
 
 const Sidebar = () => {
@@ -100,7 +100,7 @@ const Sidebar = () => {
                                             <NavLink to="/">{t('sales')}</NavLink>
                                         </li>
                                         <li>
-                                            <NavLink to="/analytics">{t('analytics')}</NavLink>
+                                            <NavLink to="/orders">{t('Orders')}</NavLink>
                                         </li>
                                         <li>
                                             <NavLink to="/menus">{t('menus')}</NavLink>
