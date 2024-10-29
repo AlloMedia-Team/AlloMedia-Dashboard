@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { MultiSelect } from "react-multi-select-component";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +17,30 @@ import { logout } from "@/store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 
+const validationSchema = Yup.object({
+  name: Yup.string()
+    .required("Restaurant name is required")
+    .min(2, "Restaurant name must be at least 2 characters")
+    .matches(
+      /^[A-Za-z\s]+$/,
+      "Restaurant name must contain only letters and spaces"
+    ),
+  city: Yup.string()
+    .required("City is required")
+    .min(2, "City must be at least 2 characters"),
+  address: Yup.string()
+    .required("Address is required")
+    .min(5, "Address must be at least 5 characters"),
+  categoryIds: Yup.array().min(1, "At least one category is required"),
+});
+
 const NavBar = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, token } = useSelector((state: RootState) => state.auth);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [createRestaurantModal, setCreateRestaurantModal] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selected, setSelected] = useState([]);
 
   const toggleCart = () => {
     setIsCartOpen((prev) => !prev);
@@ -30,9 +54,48 @@ const NavBar = () => {
     console.log("Modal state changed:", createRestaurantModal);
   }, [createRestaurantModal]);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/categories");
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      if (data.categories && Array.isArray(data.categories)) {
+        const formattedData = data.categories.map((category) => ({
+          label: category.name,
+          value: category._id,
+        }));
+        setCategories(formattedData);
+      } else {
+        console.error("Expected 'categories' array but got:", data.categories);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+  useEffect(() => {
+    fetchCategories();
+    console.log(user);
+  }, []);
   const handleLogout = async () => {
     await dispatch(logout());
   };
+
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      city: "",
+      address: "",
+      categoryIds: [],
+      managerId: user?._id,
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      console.log("Form values:", values);
+      // Show success toast
+      toast.success("Restaurant added successfully!");
+    },
+  });
 
   return (
     <>
@@ -286,13 +349,13 @@ const NavBar = () => {
           onClick={(e) => {
             if (e.target === e.currentTarget) toggleCreateRestaurantModal();
           }}
-          className="flex flex-row overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full"
+          className="flex flex-row overflow-y-auto overflow-x-hidden backdrop-blur-sm fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full"
         >
           <div className="relative p-4 w-full max-w-2xl h-full md:h-auto">
             <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
               <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Add Product
+                  Add your restaurant
                 </h3>
                 <button
                   type="button"
@@ -316,89 +379,122 @@ const NavBar = () => {
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
-              <form action="#">
+              <form onSubmit={formik.handleSubmit}>
+                <input type="hidden" name="managerId" value={user._id} />
                 <div className="grid gap-4 mb-4 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="name"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      Name
+                      Restaurant Name
                     </label>
                     <input
                       type="text"
                       name="name"
                       id="name"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
-                      placeholder="Type product name"
-                      required=""
+                      className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 ${
+                        formik.touched.name && formik.errors.name
+                          ? "border-red-600"
+                          : ""
+                      }`}
+                      placeholder="Type restaurant name"
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      value={formik.values.name}
+                      required
                     />
+                    {formik.touched.name && formik.errors.name && (
+                      <p className="text-red-600 text-sm">
+                        {formik.errors.name}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <label
-                      htmlFor="brand"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      Brand
-                    </label>
-                    <input
-                      type="text"
-                      name="brand"
-                      id="brand"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
-                      placeholder="Product brand"
-                      required=""
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="price"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      Price
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      id="price"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
-                      placeholder="$2999"
-                      required=""
-                    />
-                  </div>
+
                   <div>
                     <label
                       htmlFor="category"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      Category
+                      Restaurant Foods Category
                     </label>
-                    <select
-                      id="category"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
-                    >
-                      <option selected="">Select category</option>
-                      <option value="TV">TV/Monitors</option>
-                      <option value="PC">PC</option>
-                      <option value="GA">Gaming/Console</option>
-                      <option value="PH">Phones</option>
-                    </select>
+                    <MultiSelect
+                      options={categories}
+                      value={selected}
+                      onChange={(value) => {
+                        setSelected(value);
+                        formik.setFieldValue(
+                          "categoryIds",
+                          value.map((item) => item.value)
+                        );
+                      }}
+                      labelledBy="Select"
+                    />
+                    {formik.touched.categoryIds &&
+                      formik.errors.categoryIds && (
+                        <p className="text-red-600 text-sm">
+                          {formik.errors.categoryIds}
+                        </p>
+                      )}
                   </div>
-                  <div className="sm:col-span-2">
+
+                  <div>
                     <label
-                      htmlFor="description"
+                      htmlFor="city"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      Description
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      id="city"
+                      className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 ${
+                        formik.touched.city && formik.errors.city
+                          ? "border-red-600"
+                          : ""
+                      }`}
+                      placeholder="Type restaurant city"
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      value={formik.values.city}
+                      required
+                    />
+                    {formik.touched.city && formik.errors.city && (
+                      <p className="text-red-600 text-sm">
+                        {formik.errors.city}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="address"
+                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    >
+                      Address
                     </label>
                     <textarea
-                      id="description"
-                      rows="4"
-                      className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
-                      placeholder="Write product description here"
+                      name="address"
+                      id="address"
+                      className={`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 ${
+                        formik.touched.address && formik.errors.address
+                          ? "border-red-600"
+                          : ""
+                      }`}
+                      placeholder="Your restaurant full address"
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      value={formik.values.address}
                     ></textarea>
+                    {formik.touched.address && formik.errors.address && (
+                      <p className="text-red-600 text-sm">
+                        {formik.errors.address}
+                      </p>
+                    )}
                   </div>
                 </div>
+
                 <button
                   type="submit"
                   className="text-white inline-flex items-center bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
@@ -410,18 +506,19 @@ const NavBar = () => {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      fill-rule="evenodd"
+                      fillRule="evenodd"
                       d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clip-rule="evenodd"
+                      clipRule="evenodd"
                     ></path>
                   </svg>
-                  Add new product
+                  Add Restaurant
                 </button>
               </form>
             </div>
           </div>
         </div>
       )}
+      <ToastContainer />
     </>
   );
 };
