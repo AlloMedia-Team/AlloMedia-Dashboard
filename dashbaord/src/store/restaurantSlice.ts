@@ -43,9 +43,26 @@ const initialState: RestaurantState = {
     },
 };
 
-// Async Thunks
-export const fetchRestaurants = createAsyncThunk('restaurants/fetchAll', async ({ page, limit }: { page: number; limit: number }) => {
-    const response = await api.get(`/restaurants?page=${page}&limit=${limit}`);
+interface SearchParams {
+    page: number;
+    limit: number;
+    name?: string;
+    managerName?: string;
+    city?: string;
+    address?: string;
+}
+
+export const fetchRestaurants = createAsyncThunk('restaurants/fetchAll', async ({ page, limit, name, managerName, city, address }: SearchParams) => {
+    const searchParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(name && { name }),
+        ...(managerName && { managerName }),
+        ...(city && { city }),
+        ...(address && { address }),
+    });
+
+    const response = await api.get(`/restaurants?${searchParams.toString()}`);
     return response.data;
 });
 

@@ -6,12 +6,48 @@ const getAllRestaurants = async (req, res) => {
     const limit = parseInt(req.query.limit) || 3;
     const skip = (page - 1) * limit;
 
-    const totalRestaurants = await Restaurant.countDocuments();
+    // Build search query
+    const searchQuery = {};
+    if (req.query.name) {
+      searchQuery.name = { $regex: req.query.name, $options: "i" };
+    }
+    if (req.query.city) {
+      searchQuery["location.city"] = { $regex: req.query.city, $options: "i" };
+    }
+    if (req.query.address) {
+      searchQuery["location.address"] = {
+        $regex: req.query.address,
+        $options: "i",
+      };
+    }
 
-    const restaurants = await Restaurant.find()
-      .skip(skip)
-      .limit(limit)
-      .populate("managerId", "firstName lastName email");
+    // Handle manager name search
+    let restaurantQuery = Restaurant.find(searchQuery);
+    if (req.query.managerName) {
+      restaurantQuery = restaurantQuery.populate({
+        path: "managerId",
+        match: {
+          $or: [
+            { firstName: { $regex: req.query.managerName, $options: "i" } },
+            { lastName: { $regex: req.query.managerName, $options: "i" } },
+          ],
+        },
+      });
+    } else {
+      restaurantQuery = restaurantQuery.populate(
+        "managerId",
+        "firstName lastName email"
+      );
+    }
+
+    const totalRestaurants = await Restaurant.countDocuments(searchQuery);
+
+    let restaurants = await restaurantQuery.skip(skip).limit(limit);
+
+    // Filter out null managerId results if manager name search was performed
+    if (req.query.managerName) {
+      restaurants = restaurants.filter((restaurant) => restaurant.managerId);
+    }
 
     res.status(200).json({
       data: restaurants,
