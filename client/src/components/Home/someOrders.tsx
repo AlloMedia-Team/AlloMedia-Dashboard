@@ -53,13 +53,8 @@ export default function SomeOrders() {
                                 </div>
 
                                 ))
-
                             )
-
                             }
-
-
-
                         </div>
                     </div>
                 </div>
