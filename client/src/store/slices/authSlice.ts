@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import api from "../../services/api";
 import { toast } from "sonner";
+import { redirect } from "react-router-dom";
 
 interface User {
   id: string;
@@ -67,6 +68,7 @@ export const signup = createAsyncThunk(
 
 export const logout = createAsyncThunk("auth/logout", async () => {
   localStorage.removeItem("token");
+  redirect("/");
 });
 
 export const currentUser = createAsyncThunk(
