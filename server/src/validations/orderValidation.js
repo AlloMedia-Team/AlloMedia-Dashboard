@@ -57,7 +57,7 @@ export const validateOrderId = [
             }
             return true
         }),
-        function (req, res, next) {
+        function (req, res, next) {            
             try {
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {

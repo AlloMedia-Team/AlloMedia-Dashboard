@@ -40,17 +40,16 @@ describe('Order API Tests', () => {
 
     // Tests for PUT /api/order/validate/order
     describe('PUT /api/order/validate/order', () => {
-        it('should return status 200 and order details when the order is found', async () => {
+        it('should return status 400 and message Order Delivery Man ID is required', async () => {
             Order.findById = jest.fn().mockResolvedValue(mockOrder);
-            changeOrderStatus.mockResolvedValue(true);
+            // changeOrderStatus.mockResolvedValue(true);
 
             const response = await request(app)
                 .put('/api/order/validate/order')
-                .send({ orderId: mockOrder._id });
+                .send({ orderId: mockOrder._id, deliveryMan: '' });
 
-            expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('message', 'Order updated');
-            expect(response.body).toHaveProperty('order', mockOrder);
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty('error', 'Delivery Man ID is required');
         });
 
         it('should return status 400 if the order is not found', async () => {
@@ -58,7 +57,7 @@ describe('Order API Tests', () => {
 
             const response = await request(app)
                 .put('/api/order/validate/order')
-                .send({ orderId: 'nonexistentId'});
+                .send({ orderId: 'nonexistentId', deliveryMan: ''});
 
             expect(response.status).toBe(400);
             expect(response.body).toHaveProperty('error', 'Invalid Order ID');
@@ -79,7 +78,7 @@ describe('Order API Tests', () => {
             const response = await request(app)
                 .put('/api/order/validate/order')
                 .send(
-                    { orderId: ''}
+                    { orderId: '', deliveryMan: ''}
                 );
 
             expect(response.status).toBe(400);
