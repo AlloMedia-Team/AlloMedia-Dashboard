@@ -77,10 +77,56 @@ const deleteRestaurant = async (req, res) => {
   }
 };
 
+const fetchingPendingRestaurant = async (req, res)=>{
+  try{
+    let notacceptedRestaurant = await Restaurant.aggregate([
+      {
+        $match: {
+          isAccepted: false
+        }
+      },{
+        $lookup:{
+          from: "users",
+          localField: 'managerId',
+          foreignField: '_id',
+          as: "owner"
+        }
+      }
+    ]);
+    console.log('nooot accepted', notacceptedRestaurant)
+      return res.json({notacceptedRestaurant});
+  }catch(e){
+    console.log('an error here',e)
+      return res.json({message:'well another error'});
+  }
+}
+
+const acceptingRestaurant = async (req, res)=>{
+  try{
+    const {id} = req.params;
+    const isAccepted = true;
+    console.log(req.params);
+
+    let updaterestaurant = await Restaurant.updateOne({_id : id},{ $set :{isAccepted}});
+    console.log(updaterestaurant);
+    if(updaterestaurant){
+      return res.status(200).json({message: "the restaurant is accepted"});
+    }
+    return res.status.json({message:"failed the restaurant is not accepted"});
+  }catch(e){
+    return res.json({message:'an error has happend'});
+  }
+
+}
+
+
+
 export {
   getAllRestaurants,
   getRestaurant,
   createRestaurant,
   updateRestaurant,
   deleteRestaurant,
+  fetchingPendingRestaurant,
+  acceptingRestaurant
 };

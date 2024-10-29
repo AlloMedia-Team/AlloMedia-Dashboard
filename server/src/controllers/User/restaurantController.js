@@ -97,6 +97,7 @@ async fetchRestaurants(req, res){
     return res.json({message: "there's an error", e})
   }
 }
+
 async GetMenu(req, res){
   const { restaurantId } = req.params;
   try {

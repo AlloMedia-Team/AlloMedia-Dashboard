@@ -108,6 +108,9 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink to="/dashboard/Restaurants">Restaurants</NavLink>
                                         </li>
+                                        <li>
+                                            <NavLink to="/dashboard/pendingrestaurants">Pending Restaurants</NavLink>
+                                        </li>
                                     </ul>
                                 </AnimateHeight>
                             </li>
