@@ -12,7 +12,6 @@ export default function Card() {
 
     const handleDecrease = (e, id) => {
         e.preventDefault();
-
         const updatedItems = cartItems.map(item => {
             if (item._id === id && item.quantity > 1) {
                 item.quantity -= 1;
@@ -57,14 +56,21 @@ export default function Card() {
     }
 
     async function handleOrder() {
+        let storage = localStorage.getItem('cart');
+        if(storage === null || storage === "[]"){
+            return toast.error('your card is empty Go Check dishes');
+        }
+
+       
         const token = localStorage.getItem("token");
         if (!token) {
             toast.error("You need to be logged in before you place an order");
             return;
         }
 
+
         const userId = getUserId(localStorage.getItem('token'));
-        console.log("User ID:", userId._id);
+        // console.log("User ID:", userId._id);
         const items = cartItems.map(item => ({
             name: item.name,
             quantity: item.quantity,
@@ -84,7 +90,8 @@ export default function Card() {
             //  console.log("restaurantId:", "671a5fc278924d448ac45394");
             //  console.log("items:", items);
             //  console.log("totalPrice:", calculateTotalPrice(items));
-            console.log(result);
+            // console.log(result);
+            toast.success(result.data.message)
         } catch (e) {
             toast.error('failed');
             console.log("failed because", e);
