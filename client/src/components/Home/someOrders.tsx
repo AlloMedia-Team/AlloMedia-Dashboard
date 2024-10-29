@@ -16,7 +16,6 @@ export default function SomeOrders() {
                 const result = await axios.get('http://localhost:3000/api/restaurant&theirmenu');
                 if (result) {
                     setRestaurant(result.data);
-                    console.log('our resultss', result.data)
                 }
             } catch (e) {
                 console.log('Ops smth bad happend', e)
