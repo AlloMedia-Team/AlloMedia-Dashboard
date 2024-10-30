@@ -33,5 +33,14 @@ export const changeDeliveryStatus = async (deliveryId, status) => {
 }
 
 export const getDelivery = async () => {
-    return await Delivery.find();
+    try{
+        const deliverys = await Delivery.find().populate({
+            path: 'orderId',
+            select: 'items',
+        }).exec();
+        const filtredDeliverys = deliverys.filter((delivery) => delivery.orderId !== null); 
+        return filtredDeliverys;
+    }catch(err){
+        throw err;
+    }
 }

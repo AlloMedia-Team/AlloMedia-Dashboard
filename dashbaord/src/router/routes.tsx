@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import Resturant from '../pages/resturant/Resturant';
 const Index = lazy(() => import('../pages/Index'));
+const Delivery = lazy(() => import('../pages/delivery/DeliveryPage'));
 const Menu = lazy(() => import('../pages/menu/Menu'));
 const Orders = lazy(() => import('../pages/order/OrderPage'))
 
@@ -19,6 +20,10 @@ const routes = [
     {
         path: '/orders',
         element: <Orders />
+    },
+    {
+        path: '/commands',
+        element: <Delivery />
     },
     {
         path: '/dashboard/Restaurants',
